@@ -11,4 +11,4 @@ docker compose up -d                # PostgreSQL
 cd backend && ./mvnw spring-boot:run   # API sur http://localhost:8080
 
 ## Avancement
-Voir le [tableau du projet](https://github.com/users/idgaram/projects/1/views/1)).
+Voir le [tableau du projet](https://github.com/users/idgaram/projects/1/views/1).
