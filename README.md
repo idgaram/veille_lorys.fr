@@ -1,4 +1,5 @@
 # veille_lorys.fr
+[![CI](https://github.com/idgaram/veille_lorys.fr/actions/workflows/ci.yml/badge.svg)](https://github.com/idgaram/veille_lorys.fr/actions/workflows/ci.yml)
 
 
 Blog personnel de veille technologique, avec navigation par terminal.
