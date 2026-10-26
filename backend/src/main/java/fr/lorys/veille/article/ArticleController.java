@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/article")
+@RequestMapping("/api/articles")
 public class ArticleController {
 
   private final ArticleRepository repository;
