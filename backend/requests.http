@@ -17,8 +17,47 @@ POST {{baseUrl}}/articles
 content-type: application/json
 
 {
-    "id":"1",
     "title": "test du post",
     "excerpt": "voici l'excerpt",
     "content": "voici le content"
+}
+
+### put un article
+PUT {{baseUrl}}/articles/1
+content-type: application/json
+
+{
+    "title": "test du put",
+    "excerpt": "voici l'excerpt modifié",
+    "content": "voici le content modifié"
+}
+
+### put un article qui n'existe pas
+PUT {{baseUrl}}/articles/99
+content-type: application/json
+
+{
+    "title": "test du put",
+    "excerpt": "voici l'excerpt modifié",
+    "content": "voici le content modifié"
+}
+
+### put un article avec une requete de changement d'id
+PUT {{baseUrl}}/articles/1
+content-type: application/json
+
+{
+    "id": "2",
+    "title": "test du put",
+    "excerpt": "voici l'excerpt modifié",
+    "content": "voici le content modifié"
+}
+
+### put un article sans le champ excerpt
+PUT {{baseUrl}}/articles/1
+content-type: application/json
+
+{
+    "title": "test du put",
+    "content": "voici le content modifié"
 }

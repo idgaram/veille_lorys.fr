@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -36,5 +37,21 @@ public class ArticleController {
   @ResponseStatus(HttpStatus.CREATED)
   public Article postArticle(@RequestBody Article article) {
     return repository.save(article);
+  }
+
+  @PutMapping("/{id}")
+  public Article putArticle(
+    @PathVariable Long id,
+    @RequestBody Article newArticle
+  ) {
+    return repository
+      .findById(id)
+      .map(article -> {
+        article.setTitle(newArticle.getTitle());
+        article.setExcerpt(newArticle.getExcerpt());
+        article.setContent(newArticle.getContent());
+        return repository.save(article);
+      })
+      .orElseThrow(() -> new ArticleNotFoundException(id));
   }
 }
