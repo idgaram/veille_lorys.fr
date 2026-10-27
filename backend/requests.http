@@ -1,0 +1,72 @@
+@baseUrl = http://localhost:8080/api
+
+### Liste des articles
+GET {{baseUrl}}/articles
+
+### Un article qui existe
+GET {{baseUrl}}/articles/1
+
+### Un article qui n'existe pas
+GET {{baseUrl}}/articles/999
+
+### Un article avec une erreur de format dans l'id
+GET {{baseUrl}}/articles/ABC
+
+### post un article
+POST {{baseUrl}}/articles
+content-type: application/json
+
+{
+    "title": "test du post",
+    "excerpt": "voici l'excerpt",
+    "content": "voici le content"
+}
+
+### put un article
+PUT {{baseUrl}}/articles/1
+content-type: application/json
+
+{
+    "title": "test du put",
+    "excerpt": "voici l'excerpt modifié",
+    "content": "voici le content modifié"
+}
+
+### put un article qui n'existe pas
+PUT {{baseUrl}}/articles/99
+content-type: application/json
+
+{
+    "title": "test du put",
+    "excerpt": "voici l'excerpt modifié",
+    "content": "voici le content modifié"
+}
+
+### put un article avec une requete de changement d'id
+PUT {{baseUrl}}/articles/1
+content-type: application/json
+
+{
+    "id": 2,
+    "title": "test du put",
+    "excerpt": "voici l'excerpt modifié",
+    "content": "voici le content modifié"
+}
+
+### put un article sans le champ excerpt
+PUT {{baseUrl}}/articles/1
+content-type: application/json
+
+{
+    "title": "test du put",
+    "content": "voici le content modifié"
+}
+
+### Supprimer un article
+DELETE {{baseUrl}}/articles/1
+
+### Vérifier qu'il n'existe plus
+GET {{baseUrl}}/articles/1
+
+### Supprimer un article qui n'existe pas
+DELETE {{baseUrl}}/articles/1
