@@ -1,0 +1,24 @@
+@baseUrl = http://localhost:8080/api
+
+### Liste des articles
+GET {{baseUrl}}/articles
+
+### Un article qui existe
+GET {{baseUrl}}/articles/1
+
+### Un article qui n'existe pas
+GET {{baseUrl}}/articles/999
+
+### Un article avec une erreur de format dans l'id
+GET {{baseUrl}}/articles/ABC
+
+### post un article
+POST {{baseUrl}}/articles
+content-type: application/json
+
+{
+    "id":"1",
+    "title": "test du post",
+    "excerpt": "voici l'excerpt",
+    "content": "voici le content"
+}
