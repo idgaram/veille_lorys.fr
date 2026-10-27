@@ -2,6 +2,7 @@ package fr.lorys.veille.article;
 
 import java.util.List;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,7 +28,7 @@ public class ArticleController {
   }
 
   @GetMapping("/{id}")
-  public Article findArticle(@PathVariable Long id) {
+  public Article getArticle(@PathVariable Long id) {
     return repository
       .findById(id)
       .orElseThrow(() -> new ArticleNotFoundException(id));
@@ -35,12 +36,12 @@ public class ArticleController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public Article postArticle(@RequestBody Article article) {
+  public Article createArticle(@RequestBody Article article) {
     return repository.save(article);
   }
 
   @PutMapping("/{id}")
-  public Article putArticle(
+  public Article updateArticle(
     @PathVariable Long id,
     @RequestBody Article newArticle
   ) {
@@ -53,5 +54,14 @@ public class ArticleController {
         return repository.save(article);
       })
       .orElseThrow(() -> new ArticleNotFoundException(id));
+  }
+
+  @DeleteMapping("/{id}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteArticle(@PathVariable Long id) {
+    Article article = repository
+      .findById(id)
+      .orElseThrow(() -> new ArticleNotFoundException(id));
+    repository.delete(article);
   }
 }

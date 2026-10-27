@@ -47,7 +47,7 @@ PUT {{baseUrl}}/articles/1
 content-type: application/json
 
 {
-    "id": "2",
+    "id": 2,
     "title": "test du put",
     "excerpt": "voici l'excerpt modifié",
     "content": "voici le content modifié"
@@ -61,3 +61,12 @@ content-type: application/json
     "title": "test du put",
     "content": "voici le content modifié"
 }
+
+### Supprimer un article
+DELETE {{baseUrl}}/articles/1
+
+### Vérifier qu'il n'existe plus
+GET {{baseUrl}}/articles/1
+
+### Supprimer un article qui n'existe pas
+DELETE {{baseUrl}}/articles/1
