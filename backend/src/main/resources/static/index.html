@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="fr">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Page de test de l'API</title>
+		<style>
+			body {
+				font-family: system-ui, sans-serif;
+				line-height: 1.5;
+				max-width: 40rem;
+				margin: 2rem auto;
+				padding: 0 1rem;
+			}
+			form {
+				display: grid;
+				gap: 0.75rem;
+			}
+			label {
+				display: grid;
+				gap: 0.25rem;
+				font-weight: 600;
+			}
+			input,
+			textarea,
+			button {
+				font: inherit;
+				padding: 0.5rem;
+				border: 2px solid #000;
+			}
+			button {
+				justify-self: start;
+				background: #ffd43b;
+				cursor: pointer;
+			}
+			:focus-visible {
+				outline: 3px solid #2f5bff;
+				outline-offset: 2px;
+			}
+			.error {
+				color: #b00020;
+			}
+			#list p {
+				margin: 0 0 1rem;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Page de test de l'API</h1>
+		<p>
+			Page jetable pour vérifier l'API depuis un navigateur. À supprimer à
+			l'étape 5 (#41).
+		</p>
+
+		<h2>Créer un article</h2>
+		<form id="create-form">
+			<label
+				>Titre
+				<input name="title" required maxlength="160" />
+			</label>
+			<label
+				>Résumé
+				<input name="excerpt" required maxlength="300" />
+			</label>
+			<label
+				>Contenu
+				<textarea name="content" required rows="5"></textarea>
+			</label>
+			<button type="submit">Créer l'article</button>
+		</form>
+		<p id="status" role="status"></p>
+
+		<h2>Articles</h2>
+		<ul id="list"></ul>
+
+		<script>
+			const list = document.getElementById('list');
+			const form = document.getElementById('create-form');
+			const statusEl = document.getElementById('status');
+
+			function showStatus(message, isError = false) {
+				statusEl.textContent = message;
+				statusEl.className = isError ? 'error' : '';
+			}
+
+			// textContent insère du texte brut : un titre qui contient du HTML
+			// s'affiche tel quel au lieu d'être interprété (pas de faille XSS).
+			function renderArticle(article) {
+				const item = document.createElement('li');
+				const title = document.createElement('strong');
+				title.textContent = `${article.title} (id ${article.id})`;
+				const excerpt = document.createElement('p');
+				excerpt.textContent = article.excerpt;
+				item.append(title, excerpt);
+				return item;
+			}
+
+			async function loadArticles() {
+				try {
+					const response = await fetch('/api/articles');
+					if (!response.ok) {
+						showStatus(`Lecture refusée par l'API (${response.status}).`, true);
+						return;
+					}
+					const articles = await response.json();
+					if (articles.length === 0) {
+						const empty = document.createElement('li');
+						empty.textContent =
+							'Aucun article. Crée le premier avec le formulaire.';
+						list.replaceChildren(empty);
+						return;
+					}
+					list.replaceChildren(...articles.map(renderArticle));
+				} catch {
+					showStatus(
+						"API injoignable : vérifie que l'application est lancée.",
+						true,
+					);
+				}
+			}
+
+			form.addEventListener('submit', async (event) => {
+				event.preventDefault();
+				// Les noms des champs (title, excerpt, content) donnent les clés du JSON.
+				const data = Object.fromEntries(new FormData(form));
+				try {
+					const response = await fetch('/api/articles', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify(data),
+					});
+					if (!response.ok) {
+						showStatus(
+							`Création refusée par l'API (${response.status}) : regarde les logs de l'application.`,
+							true,
+						);
+						return;
+					}
+					const created = await response.json();
+					showStatus(`Article ${created.id} créé.`);
+					form.reset();
+					loadArticles();
+				} catch {
+					showStatus(
+						"API injoignable : vérifie que l'application est lancée.",
+						true,
+					);
+				}
+			});
+
+			loadArticles();
+		</script>
+	</body>
+</html>
