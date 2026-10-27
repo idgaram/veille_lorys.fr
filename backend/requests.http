@@ -1,72 +1,134 @@
+
+# Tests manuels de l'API articles, avec l'extension VS Code REST Client.
+# Prérequis : base démarrée (docker compose up -d) et application lancée.
+# Exécuter les requêtes dans l'ordre, de haut en bas : les suivantes
+# réutilisent l'id des deux articles créés au début. Après un redémarrage
+# de VS Code, renvoyer d'abord ces deux POST.
+# L'id 0 sert d'article inexistant : les id générés par Postgres commencent à 1.
+
 @baseUrl = http://localhost:8080/api
 
-### Liste des articles
+### Créer un article → 201, avec l'id généré dans la réponse
+# @name created
+POST {{baseUrl}}/articles
+Content-Type: application/json
+
+{
+  "title": "Premier article",
+  "excerpt": "Résumé du premier article",
+  "content": "Contenu du premier article"
+}
+
+### Créer un second article → 201 (sert aux tests sur l'id du corps)
+# @name other
+POST {{baseUrl}}/articles
+Content-Type: application/json
+
+{
+  "title": "Second article",
+  "excerpt": "Résumé du second article",
+  "content": "Contenu du second article"
+}
+
+### Liste des articles → 200
 GET {{baseUrl}}/articles
 
-### Un article qui existe
-GET {{baseUrl}}/articles/1
+### Lire l'article créé → 200
+GET {{baseUrl}}/articles/{{created.response.body.$.id}}
 
-### Un article qui n'existe pas
-GET {{baseUrl}}/articles/999
+### Lire un article inexistant → 404
+GET {{baseUrl}}/articles/0
 
-### Un article avec une erreur de format dans l'id
-GET {{baseUrl}}/articles/ABC
+### Lire avec un id mal formé → 400
+GET {{baseUrl}}/articles/abc
 
-### post un article
+### Modifier l'article créé → 200, avec les nouvelles valeurs
+PUT {{baseUrl}}/articles/{{created.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "title": "Premier article modifié",
+  "excerpt": "Résumé modifié",
+  "content": "Contenu modifié"
+}
+
+### Modifier un article inexistant → 404
+PUT {{baseUrl}}/articles/0
+Content-Type: application/json
+
+{
+  "title": "Introuvable",
+  "excerpt": "Introuvable",
+  "content": "Introuvable"
+}
+
+### Envoyer l'id du second article dans le corps → 200
+# L'id du chemin fait foi : seul le premier article est modifié.
+PUT {{baseUrl}}/articles/{{created.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "id": {{other.response.body.$.id}},
+  "title": "Tentative de changement d'id",
+  "excerpt": "Résumé",
+  "content": "Contenu"
+}
+
+### Vérifier que le second article n'a pas changé → 200, titre "Second article"
+GET {{baseUrl}}/articles/{{other.response.body.$.id}}
+
+### Limite connue : PUT sans excerpt → 500 au lieu de 400
+# PUT remplace tout l'article : le champ absent devient null,
+# et la colonne not null le refuse. Corrigé par @Valid à l'étape 1.
+PUT {{baseUrl}}/articles/{{created.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "title": "Sans résumé",
+  "content": "Contenu"
+}
+
+### Limite connue : POST sans champs → 500 au lieu de 400
+# Même cause : rien ne vérifie le corps avant la base. Corrigé par @Valid à l'étape 1.
 POST {{baseUrl}}/articles
-content-type: application/json
+Content-Type: application/json
+
+{}
+
+### Limite connue : POST avec un id existant → 201, mais écrase le second article
+# Jackson remplit l'id malgré l'absence de setter, puis save() voit un id
+# et fait une mise à jour au lieu d'une création. Corrigé par les DTO à l'étape 1.
+POST {{baseUrl}}/articles
+Content-Type: application/json
 
 {
-    "title": "test du post",
-    "excerpt": "voici l'excerpt",
-    "content": "voici le content"
+  "id": {{other.response.body.$.id}},
+  "title": "Écrasé par un POST",
+  "excerpt": "Résumé",
+  "content": "Contenu"
 }
 
-### put un article
-PUT {{baseUrl}}/articles/1
-content-type: application/json
+### Limite connue : POST avec un id inexistant → 500
+# save() tente une mise à jour, et Hibernate refuse de fusionner
+# une ligne introuvable. Corrigé par les DTO à l'étape 1.
+POST {{baseUrl}}/articles
+Content-Type: application/json
 
 {
-    "title": "test du put",
-    "excerpt": "voici l'excerpt modifié",
-    "content": "voici le content modifié"
+  "id": 0,
+  "title": "Fantôme",
+  "excerpt": "Résumé",
+  "content": "Contenu"
 }
 
-### put un article qui n'existe pas
-PUT {{baseUrl}}/articles/99
-content-type: application/json
+### Supprimer l'article créé → 204
+DELETE {{baseUrl}}/articles/{{created.response.body.$.id}}
 
-{
-    "title": "test du put",
-    "excerpt": "voici l'excerpt modifié",
-    "content": "voici le content modifié"
-}
+### Vérifier qu'il n'existe plus → 404
+GET {{baseUrl}}/articles/{{created.response.body.$.id}}
 
-### put un article avec une requete de changement d'id
-PUT {{baseUrl}}/articles/1
-content-type: application/json
+### Supprimer à nouveau → 404 (choix : cohérent avec GET et PUT)
+DELETE {{baseUrl}}/articles/{{created.response.body.$.id}}
 
-{
-    "id": 2,
-    "title": "test du put",
-    "excerpt": "voici l'excerpt modifié",
-    "content": "voici le content modifié"
-}
-
-### put un article sans le champ excerpt
-PUT {{baseUrl}}/articles/1
-content-type: application/json
-
-{
-    "title": "test du put",
-    "content": "voici le content modifié"
-}
-
-### Supprimer un article
-DELETE {{baseUrl}}/articles/1
-
-### Vérifier qu'il n'existe plus
-GET {{baseUrl}}/articles/1
-
-### Supprimer un article qui n'existe pas
-DELETE {{baseUrl}}/articles/1
+### Nettoyage : supprimer le second article → 204
+DELETE {{baseUrl}}/articles/{{other.response.body.$.id}}
