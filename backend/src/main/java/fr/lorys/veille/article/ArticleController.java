@@ -23,27 +23,29 @@ public class ArticleController {
   }
 
   @GetMapping
-  public List<Article> getAllArticles() {
+  public List<ArticleResponse> getAllArticles() {
     return service.findAll();
   }
 
   @GetMapping("/{id}")
-  public Article getArticle(@PathVariable Long id) {
+  public ArticleResponse getArticle(@PathVariable Long id) {
     return service.findById(id);
   }
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public Article createArticle(@RequestBody Article article) {
-    return service.create(article);
+  public ArticleResponse createArticle(
+    @RequestBody ArticleRequest articleRequest
+  ) {
+    return service.create(articleRequest);
   }
 
   @PutMapping("/{id}")
-  public Article updateArticle(
+  public ArticleResponse updateArticle(
     @PathVariable Long id,
-    @RequestBody Article newArticle
+    @RequestBody ArticleRequest articleRequest
   ) {
-    return service.update(id, newArticle);
+    return service.update(id, articleRequest);
   }
 
   @DeleteMapping("/{id}")

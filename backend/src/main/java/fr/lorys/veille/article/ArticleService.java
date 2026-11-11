@@ -12,24 +12,24 @@ public class ArticleService {
     this.repository = repository;
   }
 
-  List<Article> findAll() {
-    return repository.findAll();
+  List<ArticleResponse> findAll() {
+    return repository.findAll().stream().map(ArticleResponse::from).toList();
   }
 
-  Article findById(Long id) {
-    return getOrThrow(id);
+  ArticleResponse findById(Long id) {
+    return ArticleResponse.from(getOrThrow(id));
   }
 
-  Article create(Article article) {
-    return repository.save(article);
+  ArticleResponse create(ArticleRequest request) {
+    Article article = new Article();
+    copyFields(request, article);
+    return ArticleResponse.from(repository.save(article));
   }
 
-  Article update(Long id, Article changes) {
+  ArticleResponse update(Long id, ArticleRequest request) {
     Article article = getOrThrow(id);
-    article.setContent(changes.getContent());
-    article.setExcerpt(changes.getExcerpt());
-    article.setTitle(changes.getTitle());
-    return repository.save(article);
+    copyFields(request, article);
+    return ArticleResponse.from(repository.save(article));
   }
 
   void delete(Long id) {
@@ -41,5 +41,11 @@ public class ArticleService {
     return repository
       .findById(id)
       .orElseThrow(() -> new ArticleNotFoundException(id));
+  }
+
+  private void copyFields(ArticleRequest request, Article article) {
+    article.setTitle(request.title());
+    article.setContent(request.content());
+    article.setExcerpt(request.excerpt());
   }
 }
