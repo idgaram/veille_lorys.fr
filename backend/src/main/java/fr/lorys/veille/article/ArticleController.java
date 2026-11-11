@@ -16,28 +16,26 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/articles")
 public class ArticleController {
 
-  private final ArticleRepository repository;
+  private final ArticleService service;
 
-  public ArticleController(ArticleRepository repository) {
-    this.repository = repository;
+  public ArticleController(ArticleService service) {
+    this.service = service;
   }
 
   @GetMapping
   public List<Article> getAllArticles() {
-    return repository.findAll();
+    return service.findAll();
   }
 
   @GetMapping("/{id}")
   public Article getArticle(@PathVariable Long id) {
-    return repository
-      .findById(id)
-      .orElseThrow(() -> new ArticleNotFoundException(id));
+    return service.findById(id);
   }
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public Article createArticle(@RequestBody Article article) {
-    return repository.save(article);
+    return service.create(article);
   }
 
   @PutMapping("/{id}")
@@ -45,23 +43,12 @@ public class ArticleController {
     @PathVariable Long id,
     @RequestBody Article newArticle
   ) {
-    return repository
-      .findById(id)
-      .map(article -> {
-        article.setTitle(newArticle.getTitle());
-        article.setExcerpt(newArticle.getExcerpt());
-        article.setContent(newArticle.getContent());
-        return repository.save(article);
-      })
-      .orElseThrow(() -> new ArticleNotFoundException(id));
+    return service.update(id, newArticle);
   }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteArticle(@PathVariable Long id) {
-    Article article = repository
-      .findById(id)
-      .orElseThrow(() -> new ArticleNotFoundException(id));
-    repository.delete(article);
+    service.delete(id);
   }
 }
