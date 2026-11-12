@@ -1,5 +1,6 @@
 package fr.lorys.veille.article;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -35,7 +36,7 @@ public class ArticleController {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public ArticleResponse createArticle(
-    @RequestBody ArticleRequest articleRequest
+    @RequestBody @Valid ArticleRequest articleRequest
   ) {
     return service.create(articleRequest);
   }
@@ -43,7 +44,7 @@ public class ArticleController {
   @PutMapping("/{id}")
   public ArticleResponse updateArticle(
     @PathVariable Long id,
-    @RequestBody ArticleRequest articleRequest
+    @RequestBody @Valid ArticleRequest articleRequest
   ) {
     return service.update(id, articleRequest);
   }
