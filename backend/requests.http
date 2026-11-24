@@ -108,18 +108,44 @@ Content-Type: application/json
   "content": "Contenu"
 }
 
-### Limite connue : POST avec un id inexistant → 500
-# save() tente une mise à jour, et Hibernate refuse de fusionner
-# une ligne introuvable. Corrigé par les DTO à l'étape 1.
+### POST avec un id inexistant → 201, crée un nouvel article
+# @name withUnknownId
+# ArticleRequest n'a pas de composant id : Jackson ignore la valeur,
+# et le service part d'un article neuf, dont Postgres choisit l'id.
 POST {{baseUrl}}/articles
 Content-Type: application/json
 
 {
   "id": 0,
-  "title": "Fantôme",
+  "title": "Créé malgré l'id 0",
   "excerpt": "Résumé",
   "content": "Contenu"
 }
+
+### POST avec un title : "   " → 400 bad request
+# l'ajout de @Valid sur les paramètres @RequestBody du controller et 
+# @NotBlank sur title refusent une chaîne vide ou faite d'espaces.
+POST {{baseUrl}}/articles
+Content-Type: application/json
+
+{
+  "title": "   ",
+  "excerpt": "article avec 3 espaces",
+  "content": "Contenu de l'article avec 3 espaces"
+}
+
+### POST avec un title de 161 caractères → 400 bad request
+# @Size(max = 160) sur title refuse la valeur : @Valid répond 400
+# avant le service, et aucun article n'est créé.
+POST {{baseUrl}}/articles
+Content-Type: application/json
+
+{
+  "title": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "excerpt": "article avec 161 caractères",
+  "content": "Contenu de l'article avec 161 caractères"
+}
+
 
 ### Supprimer l'article créé → 204
 DELETE {{baseUrl}}/articles/{{created.response.body.$.id}}
@@ -132,3 +158,9 @@ DELETE {{baseUrl}}/articles/{{created.response.body.$.id}}
 
 ### Nettoyage : supprimer le second article → 204
 DELETE {{baseUrl}}/articles/{{other.response.body.$.id}}
+
+### Nettoyage : supprimer l'article créé malgré un id existant → 204
+DELETE {{baseUrl}}/articles/{{withExistingId.response.body.$.id}}
+
+### Nettoyage : supprimer l'article créé malgré un id inexistant → 204
+DELETE {{baseUrl}}/articles/{{withUnknownId.response.body.$.id}}

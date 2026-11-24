@@ -1,5 +1,6 @@
 package fr.lorys.veille.article;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,52 +17,41 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/articles")
 public class ArticleController {
 
-  private final ArticleRepository repository;
+  private final ArticleService service;
 
-  public ArticleController(ArticleRepository repository) {
-    this.repository = repository;
+  public ArticleController(ArticleService service) {
+    this.service = service;
   }
 
   @GetMapping
-  public List<Article> getAllArticles() {
-    return repository.findAll();
+  public List<ArticleResponse> getAllArticles() {
+    return service.findAll();
   }
 
   @GetMapping("/{id}")
-  public Article getArticle(@PathVariable Long id) {
-    return repository
-      .findById(id)
-      .orElseThrow(() -> new ArticleNotFoundException(id));
+  public ArticleResponse getArticle(@PathVariable Long id) {
+    return service.findById(id);
   }
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public Article createArticle(@RequestBody Article article) {
-    return repository.save(article);
+  public ArticleResponse createArticle(
+    @RequestBody @Valid ArticleRequest articleRequest
+  ) {
+    return service.create(articleRequest);
   }
 
   @PutMapping("/{id}")
-  public Article updateArticle(
+  public ArticleResponse updateArticle(
     @PathVariable Long id,
-    @RequestBody Article newArticle
+    @RequestBody @Valid ArticleRequest articleRequest
   ) {
-    return repository
-      .findById(id)
-      .map(article -> {
-        article.setTitle(newArticle.getTitle());
-        article.setExcerpt(newArticle.getExcerpt());
-        article.setContent(newArticle.getContent());
-        return repository.save(article);
-      })
-      .orElseThrow(() -> new ArticleNotFoundException(id));
+    return service.update(id, articleRequest);
   }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteArticle(@PathVariable Long id) {
-    Article article = repository
-      .findById(id)
-      .orElseThrow(() -> new ArticleNotFoundException(id));
-    repository.delete(article);
+    service.delete(id);
   }
 }
